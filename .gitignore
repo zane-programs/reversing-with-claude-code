@@ -1,0 +1,5 @@
+*.mitm
+*.apk
+
+.env
+.env.local
