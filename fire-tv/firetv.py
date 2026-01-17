@@ -243,6 +243,32 @@ class FireTV:
             return True
         return False
 
+    # === Wake / Power ===
+
+    def wake(self, timeout: int = 3) -> bool:
+        """
+        Attempt to wake the Fire TV device via DIAL protocol on port 8009.
+
+        This sends a request to the DIAL endpoint which can wake a sleeping device.
+
+        Args:
+            timeout: Request timeout in seconds
+
+        Returns:
+            True if wake request was sent successfully
+        """
+        try:
+            url = f"{self.dial_url}/apps/FireTVRemote"
+            response = self.session.post(
+                url,
+                headers={"Content-Type": "text/plain"},
+                data="",
+                timeout=timeout
+            )
+            return response.status_code in (200, 201)
+        except Exception:
+            return False
+
     # === Device Information ===
 
     def get_status(self) -> dict:

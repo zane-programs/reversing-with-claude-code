@@ -261,16 +261,26 @@ def main():
     if len(sys.argv) > 1:
         host = sys.argv[1]
         token = sys.argv[2] if len(sys.argv) > 2 else None
-        print(f"{Colors.CYAN}Connecting to {host}...{Colors.RESET}")
+        print(f"{Colors.CYAN}Waking device at {host}...{Colors.RESET}")
         tv = FireTV(host, token=token)
+        if tv.wake():
+            print(f"{Colors.GREEN}Wake request sent.{Colors.RESET}")
+        else:
+            print(f"{Colors.YELLOW}Wake request failed (device may already be awake).{Colors.RESET}")
+        print(f"{Colors.CYAN}Connecting...{Colors.RESET}")
     else:
         # Discover devices
         device = discover_and_select()
         if not device:
             return
 
-        print(f"\n{Colors.CYAN}Connecting to {device.name}...{Colors.RESET}")
+        print(f"\n{Colors.CYAN}Waking {device.name}...{Colors.RESET}")
         tv = FireTV(device.host)
+        if tv.wake():
+            print(f"{Colors.GREEN}Wake request sent.{Colors.RESET}")
+        else:
+            print(f"{Colors.YELLOW}Wake request failed (device may already be awake).{Colors.RESET}")
+        print(f"{Colors.CYAN}Connecting...{Colors.RESET}")
 
     # Check if already paired or need to pair
     if not tv.is_paired:
