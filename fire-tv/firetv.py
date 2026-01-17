@@ -13,7 +13,11 @@ from typing import Optional, Callable
 from enum import Enum
 
 import requests
+import urllib3
 from zeroconf import ServiceBrowser, ServiceListener, Zeroconf
+
+# Suppress InsecureRequestWarning for self-signed certificates
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 # Constants
@@ -157,6 +161,7 @@ class FireTV:
         self.dial_port = DIAL_PORT
         self.token = token
         self.session = requests.Session()
+        self.session.verify = False  # Accept self-signed certificates
         self.session.headers.update({
             "Content-Type": "application/json; charset=utf-8",
             "Accept": "*/*",
@@ -166,7 +171,7 @@ class FireTV:
 
     @property
     def base_url(self) -> str:
-        return f"http://{self.host}:{self.port}"
+        return f"https://{self.host}:{self.port}"
 
     @property
     def dial_url(self) -> str:
