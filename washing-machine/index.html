@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Kimball Hall Laundry</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header .subtitle {
+            font-size: 0.85rem;
+            color: #8892b0;
+        }
+
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .connection-status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff6b6b;
+        }
+
+        .connection-status.connected .dot {
+            background: #51cf66;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .stat-box .number {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .stat-box .label {
+            font-size: 0.7rem;
+            color: #8892b0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-box.available .number { color: #51cf66; }
+        .stat-box.in-use .number { color: #ffd43b; }
+        .stat-box.complete .number { color: #ff6b6b; }
+
+        .section-title {
+            font-size: 0.85rem;
+            color: #8892b0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 24px 0 12px;
+            padding-left: 4px;
+        }
+
+        .machines-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+        }
+
+        .machine-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .machine-card:active {
+            transform: scale(0.98);
+        }
+
+        .machine-card.complete {
+            background: rgba(255, 107, 107, 0.15);
+            border: 2px solid rgba(255, 107, 107, 0.5);
+            animation: urgentPulse 1.5s infinite;
+        }
+
+        @keyframes urgentPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+            50% { box-shadow: 0 0 20px 4px rgba(255, 107, 107, 0.3); }
+        }
+
+        .machine-card.in-use {
+            background: rgba(255, 212, 59, 0.1);
+            border: 1px solid rgba(255, 212, 59, 0.3);
+        }
+
+        .machine-card.available {
+            background: rgba(81, 207, 102, 0.1);
+            border: 1px solid rgba(81, 207, 102, 0.3);
+        }
+
+        .machine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .machine-type {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .machine-icon {
+            font-size: 1.5rem;
+        }
+
+        .machine-number {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.available {
+            background: rgba(81, 207, 102, 0.2);
+            color: #51cf66;
+        }
+
+        .status-badge.in-use {
+            background: rgba(255, 212, 59, 0.2);
+            color: #ffd43b;
+        }
+
+        .status-badge.complete {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+
+        .timer {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 8px 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer.countdown {
+            color: #ffd43b;
+        }
+
+        .timer.countup {
+            color: #ff6b6b;
+            animation: timerBlink 1s infinite;
+        }
+
+        @keyframes timerBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .timer-label {
+            font-size: 0.7rem;
+            color: #8892b0;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .cycle-name {
+            font-size: 0.7rem;
+            color: #8892b0;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .ready-text {
+            font-size: 1.2rem;
+            text-align: center;
+            color: #51cf66;
+            font-weight: 600;
+            margin: 16px 0;
+        }
+
+        .door-open {
+            font-size: 0.7rem;
+            color: #74c0fc;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .last-update {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 26, 46, 0.95);
+            padding: 12px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #8892b0;
+            backdrop-filter: blur(10px);
+        }
+
+        .no-machines {
+            text-align: center;
+            color: #8892b0;
+            padding: 40px 20px;
+        }
+
+        @media (max-width: 380px) {
+            .machines-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .timer {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Kimball Hall Laundry</h1>
+        <div class="subtitle">Room 5730 - Live Status</div>
+        <div class="connection-status" id="connectionStatus">
+            <span class="dot"></span>
+            <span class="text">Connecting...</span>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-box available">
+            <div class="number" id="availableCount">-</div>
+            <div class="label">Available</div>
+        </div>
+        <div class="stat-box in-use">
+            <div class="number" id="inUseCount">-</div>
+            <div class="label">In Use</div>
+        </div>
+        <div class="stat-box complete">
+            <div class="number" id="completeCount">-</div>
+            <div class="label">Done</div>
+        </div>
+    </div>
+
+    <div id="completeMachines"></div>
+    <div id="inUseMachines"></div>
+    <div id="availableMachines"></div>
+
+    <div class="last-update">
+        Last update: <span id="lastUpdate">-</span>
+    </div>
+
+    <script>
+        const ROOM_ID = '5730';
+        const WS_URL = 'wss://websocket.alliancelaundrydigital.com';
+
+        let machines = {};
+        let ws = null;
+        let reconnectTimeout = null;
+
+        // Determine if machine is washer or dryer based on control ID pattern
+        function getMachineType(machine) {
+            const controlId = machine.controlId || '';
+            // Control IDs starting with 335054 appear to be dryers based on cycle types
+            if (controlId.startsWith('335054')) {
+                return { type: 'dryer', icon: '🔥', label: 'Dryer' };
+            }
+            return { type: 'washer', icon: '💧', label: 'Washer' };
+        }
+
+        function parseUTCTimestamp(timestamp) {
+            // API returns timestamps without Z suffix, so we add it for proper UTC parsing
+            if (timestamp && !timestamp.endsWith('Z')) {
+                return new Date(timestamp + 'Z');
+            }
+            return new Date(timestamp);
+        }
+
+        function formatTime(seconds) {
+            if (seconds < 0) seconds = 0;
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function formatCycleName(name) {
+            if (!name) return '';
+            return name.replace(/_/g, ' ').toLowerCase()
+                .replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        function getShortMachineId(id) {
+            // Use last 2 digits for display
+            return id.slice(-2);
+        }
+
+        function connect() {
+            if (ws && ws.readyState === WebSocket.OPEN) return;
+
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                updateConnectionStatus(true);
+                const subscribeMsg = {
+                    app: 'ca-ios',
+                    ver: '3.18.0',
+                    topics: [`room:${ROOM_ID}`],
+                    roomId: ROOM_ID,
+                    eventType: 'SUBSCRIBE'
+                };
+                ws.send(JSON.stringify(subscribeMsg));
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.eventType === 'MACHINE_STATUS' && msg.data) {
+                        machines[msg.machineId] = {
+                            ...msg.data,
+                            receivedAt: new Date().toISOString(),
+                            serverTs: msg.ts
+                        };
+                        renderMachines();
+                        updateLastUpdate();
+                    }
+                } catch (e) {
+                    console.error('Parse error:', e);
+                }
+            };
+
+            ws.onclose = () => {
+                updateConnectionStatus(false);
+                reconnectTimeout = setTimeout(connect, 3000);
+            };
+
+            ws.onerror = () => {
+                ws.close();
+            };
+        }
+
+        function updateConnectionStatus(connected) {
+            const el = document.getElementById('connectionStatus');
+            el.className = 'connection-status' + (connected ? ' connected' : '');
+            el.querySelector('.text').textContent = connected ? 'Live' : 'Reconnecting...';
+        }
+
+        function updateLastUpdate() {
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }
+
+        function createMachineCard(machine) {
+            const typeInfo = getMachineType(machine);
+            const status = machine.statusId.toLowerCase().replace('_', '-');
+            const shortId = getShortMachineId(machine.id);
+
+            let timerHtml = '';
+            let extraHtml = '';
+
+            if (machine.statusId === 'IN_USE') {
+                timerHtml = `
+                    <div class="timer countdown" data-machine-id="${machine.id}" data-remaining="${machine.remainingSeconds}" data-status="in-use">
+                        ${formatTime(machine.remainingSeconds)}
+                    </div>
+                    <div class="timer-label">Remaining</div>
+                `;
+            } else if (machine.statusId === 'COMPLETE') {
+                // Calculate time since completion
+                const completedAt = parseUTCTimestamp(machine.createdAt);
+                const elapsed = Math.floor((Date.now() - completedAt.getTime()) / 1000);
+                timerHtml = `
+                    <div class="timer countup" data-machine-id="${machine.id}" data-completed-at="${machine.createdAt}" data-status="complete">
+                        ${formatTime(elapsed)}
+                    </div>
+                    <div class="timer-label">Waiting</div>
+                `;
+            } else {
+                timerHtml = '<div class="ready-text">Ready</div>';
+            }
+
+            if (machine.isDoorOpen) {
+                extraHtml = '<div class="door-open">Door Open</div>';
+            }
+
+            const cycleName = machine.selectedCycle?.name ? formatCycleName(machine.selectedCycle.name) : '';
+
+            return `
+                <div class="machine-card ${status}">
+                    <div class="machine-header">
+                        <div class="machine-type">
+                            <span class="machine-icon">${typeInfo.icon}</span>
+                            <span class="machine-number">#${shortId}</span>
+                        </div>
+                        <span class="status-badge ${status}">${machine.statusId.replace('_', ' ')}</span>
+                    </div>
+                    ${timerHtml}
+                    ${cycleName ? `<div class="cycle-name">${cycleName}</div>` : ''}
+                    ${extraHtml}
+                </div>
+            `;
+        }
+
+        function renderMachines() {
+            const machineList = Object.values(machines);
+
+            // Sort: Complete first (by waiting time desc), then In Use (by remaining asc), then Available
+            const complete = machineList.filter(m => m.statusId === 'COMPLETE')
+                .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            const inUse = machineList.filter(m => m.statusId === 'IN_USE')
+                .sort((a, b) => a.remainingSeconds - b.remainingSeconds);
+            const available = machineList.filter(m => m.statusId === 'AVAILABLE')
+                .sort((a, b) => a.id.localeCompare(b.id));
+
+            // Update counts
+            document.getElementById('availableCount').textContent = available.length;
+            document.getElementById('inUseCount').textContent = inUse.length;
+            document.getElementById('completeCount').textContent = complete.length;
+
+            // Render sections
+            const completeContainer = document.getElementById('completeMachines');
+            const inUseContainer = document.getElementById('inUseMachines');
+            const availableContainer = document.getElementById('availableMachines');
+
+            if (complete.length > 0) {
+                completeContainer.innerHTML = `
+                    <div class="section-title">⚠️ Pick Up Your Laundry!</div>
+                    <div class="machines-grid">${complete.map(createMachineCard).join('')}</div>
+                `;
+            } else {
+                completeContainer.innerHTML = '';
+            }
+
+            if (inUse.length > 0) {
+                inUseContainer.innerHTML = `
+                    <div class="section-title">In Progress</div>
+                    <div class="machines-grid">${inUse.map(createMachineCard).join('')}</div>
+                `;
+            } else {
+                inUseContainer.innerHTML = '';
+            }
+
+            if (available.length > 0) {
+                availableContainer.innerHTML = `
+                    <div class="section-title">Available Now</div>
+                    <div class="machines-grid">${available.map(createMachineCard).join('')}</div>
+                `;
+            } else {
+                availableContainer.innerHTML = '';
+            }
+        }
+
+        // Update timers every second
+        function updateTimers() {
+            // Update countdown timers (IN_USE)
+            document.querySelectorAll('.timer[data-status="in-use"]').forEach(el => {
+                const machineId = el.dataset.machineId;
+                const machine = machines[machineId];
+                if (machine) {
+                    // Decrement based on time since last update
+                    const elapsed = Math.floor((Date.now() - new Date(machine.receivedAt).getTime()) / 1000);
+                    const remaining = Math.max(0, machine.remainingSeconds - elapsed);
+                    el.textContent = formatTime(remaining);
+                }
+            });
+
+            // Update countup timers (COMPLETE)
+            document.querySelectorAll('.timer[data-status="complete"]').forEach(el => {
+                const completedAt = parseUTCTimestamp(el.dataset.completedAt);
+                const elapsed = Math.floor((Date.now() - completedAt.getTime()) / 1000);
+                el.textContent = formatTime(elapsed);
+            });
+        }
+
+        // Initialize
+        connect();
+        setInterval(updateTimers, 1000);
+
+        // Handle visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                if (!ws || ws.readyState !== WebSocket.OPEN) {
+                    connect();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

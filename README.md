@@ -44,7 +44,11 @@ Key findings include a Remote Access Trojan capable of loading arbitrary code, d
 
 ### `washing-machine/`
 
-Placeholder for Speed Queen laundry machine API analysis (not yet uploaded).
+Reverse engineering of Speed Queen commercial laundry machines (used in dorms and laundromats). Contains:
+
+- `index.html` - Live laundry room dashboard that connects to Speed Queen's WebSocket API
+
+The webapp subscribes to real-time machine status updates from `wss://websocket.alliancelaundrydigital.com`, displaying availability, cycle progress, and time-since-completion for washers and dryers.
 
 ## Takeaways
 
